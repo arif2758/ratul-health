@@ -12,6 +12,7 @@ export interface User {
   emailVerified?: boolean;
   birthdate?: string;
   gender?: "male" | "female";
+  height?: number;
   username?: string;
 }
 
@@ -34,6 +35,9 @@ export interface Metrics {
   bodyFat?: number;
   bodyFatPercentage?: number;
   idealWeight?: number;
+  waist?: number;
+  neck?: number;
+  hip?: number;
   createdAt?: string;
 }
 

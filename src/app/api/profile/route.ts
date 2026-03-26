@@ -6,6 +6,9 @@ import { User } from "@/lib/db/models/User";
 interface UpdateData {
   name?: string;
   image?: string;
+  height?: number;
+  birthdate?: string;
+  gender?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -18,20 +21,18 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const formData = await request.formData();
-    const name = formData.get("name") as string | null;
-    const image = formData.get("image") as File | null;
+    const body = await request.json();
+    const { name, height, birthdate, gender } = body;
 
-    const updateData: UpdateData = {};
+    const updateData: UpdateData & {
+      height?: number;
+      birthdate?: string;
+      gender?: string;
+    } = {};
     if (name) updateData.name = name;
-
-    // Handle image upload if needed - you might want to use a service like Cloudinary or S3
-    // For now, storing as base64 for simplicity
-    if (image) {
-      const buffer = await image.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString("base64");
-      updateData.image = `data:${image.type};base64,${base64}`;
-    }
+    if (height) updateData.height = height;
+    if (birthdate) updateData.birthdate = birthdate;
+    if (gender) updateData.gender = gender;
 
     const user = await User.findByIdAndUpdate(session.user.id, updateData, {
       new: true,

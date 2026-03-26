@@ -19,8 +19,21 @@ const userSchema = new Schema(
     image: {
       type: String,
     },
+    profilePic: {
+      type: String,
+    },
     emailVerified: {
       type: Date,
+    },
+    birthdate: {
+      type: String,
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+    },
+    height: {
+      type: Number,
     },
   },
   {

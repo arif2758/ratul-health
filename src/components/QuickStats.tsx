@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useMemo } from "react";
 import { TrendingDown, TrendingUp, Target, Calendar } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -36,12 +37,16 @@ export function QuickStats({
     return Math.max(0, Math.min(100, progress));
   };
 
-  const daysSinceLastEntry = latestMetrics
-    ? Math.floor(
-        (Date.now() - new Date(latestMetrics.createdAt || "").getTime()) /
-          (1000 * 60 * 60 * 24),
-      )
-    : null;
+  const daysSinceLastEntry = useMemo(() => {
+    if (!latestMetrics) return null;
+
+    const now = new Date();
+    const entryDate = new Date(latestMetrics.createdAt || "");
+    const diffTime = now.getTime() - entryDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  }, [latestMetrics]);
 
   const goalProgress = calculateGoalProgress();
   const targetWeight = goals?.find((g) => g.targetWeight)?.targetWeight;

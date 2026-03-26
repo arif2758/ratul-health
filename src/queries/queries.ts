@@ -71,10 +71,16 @@ export const queries = {
     return handleResponse<User>(res);
   },
 
-  async updateProfile(formData: FormData): Promise<User | null> {
+  async updateProfile(data: {
+    name?: string;
+    height?: number;
+    birthdate?: string;
+    gender?: string;
+  }): Promise<User | null> {
     const res = await fetch("/api/profile", {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
       credentials: "include",
     });
     return handleResponse<User>(res);

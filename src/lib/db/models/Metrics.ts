@@ -50,6 +50,15 @@ const metricsSchema = new Schema(
     idealWeight: {
       type: Number,
     },
+    waist: {
+      type: Number,
+    },
+    neck: {
+      type: Number,
+    },
+    hip: {
+      type: Number,
+    },
   },
   {
     timestamps: true,
