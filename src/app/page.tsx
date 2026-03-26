@@ -531,8 +531,8 @@ export default function Landing() {
                             : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
                         )}
                       >
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
+                        <option value="male" className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white">Male</option>
+                        <option value="female" className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white">Female</option>
                       </select>
                     </div>
                   </div>

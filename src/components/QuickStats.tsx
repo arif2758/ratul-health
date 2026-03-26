@@ -13,12 +13,14 @@ interface QuickStatsProps {
   darkMode: boolean;
   latestMetrics?: Metrics;
   goals?: Goal[];
+  initialWeight?: number;
 }
 
 export function QuickStats({
   darkMode,
   latestMetrics,
   goals,
+  initialWeight,
 }: QuickStatsProps) {
   const calculateGoalProgress = () => {
     if (!latestMetrics || !goals || goals.length === 0) return 0;
@@ -28,12 +30,13 @@ export function QuickStats({
 
     const currentWeight = latestMetrics.weight;
     const targetWeight = weightGoal.targetWeight;
-    const initialWeight = currentWeight; // Would need historical data for actual initial
+    const startWeight = initialWeight || currentWeight;
 
+    if (startWeight === targetWeight) return currentWeight === targetWeight ? 100 : 0;
     if (currentWeight === targetWeight) return 100;
 
     const progress =
-      ((initialWeight - currentWeight) / (initialWeight - targetWeight)) * 100;
+      ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100;
     return Math.max(0, Math.min(100, progress));
   };
 

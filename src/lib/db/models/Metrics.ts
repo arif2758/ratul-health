@@ -28,10 +28,10 @@ const metricsSchema = new Schema(
       type: String,
       enum: [
         "sedentary",
-        "lightly_active",
-        "moderately_active",
+        "light",
+        "moderate",
+        "active",
         "very_active",
-        "extra_active",
       ],
       required: true,
     },

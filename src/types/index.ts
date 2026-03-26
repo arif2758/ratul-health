@@ -18,6 +18,7 @@ export interface User {
 
 export interface Metrics {
   id?: number;
+  _id?: string | number;
   userId?: string;
   weight: number;
   height: number;
@@ -25,10 +26,10 @@ export interface Metrics {
   gender: "male" | "female";
   activityLevel:
     | "sedentary"
-    | "lightly_active"
-    | "moderately_active"
-    | "very_active"
-    | "extra_active";
+    | "light"
+    | "moderate"
+    | "active"
+    | "very_active";
   bmi: number;
   bmr: number;
   tdee: number;

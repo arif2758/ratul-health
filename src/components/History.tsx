@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { toast } from "sonner";
 import { queries } from "@/queries/queries";
 import type { Metrics } from "@/types";
 
@@ -91,15 +92,30 @@ export default function History({
     }
   };
 
-  const deleteEntry = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this measurement?"))
-      return;
+  const confirmDelete = (id: number | string) => {
+    toast("Delete Measurement?", {
+      description: "Are you sure you want to delete this? This action cannot be undone.",
+      action: {
+        label: "Delete",
+        onClick: () => deleteEntry(id),
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {},
+      },
+      className: darkMode
+        ? "border-red-500/20 bg-red-500/10 text-white"
+        : "border-red-500/20 bg-red-50 text-red-900",
+    });
+  };
+
+  const deleteEntry = async (id: number | string) => {
 
     try {
       if (isLoggedIn) {
         // Try to delete from cloud first if logged in
         try {
-          await queries.deleteMetric(id);
+          await queries.deleteMetric(id as number);
         } catch (err) {
           console.error(
             "Failed to delete from cloud, might be a local entry:",
@@ -250,7 +266,7 @@ export default function History({
 
                 return (
                   <tr
-                    key={entry.id ? `${entry.id}` : `local-${index}`}
+                    key={entry.id || entry._id ? `${entry.id || entry._id}` : `local-${index}`}
                     className={cn(
                       "group transition-colors",
                       darkMode ? "hover:bg-white/5" : "hover:bg-gray-50",
@@ -347,14 +363,14 @@ export default function History({
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {entry.id && (
+                      {(entry.id || entry._id) && (
                         <button
-                          onClick={() => deleteEntry(entry.id!)}
+                          onClick={() => confirmDelete((entry.id || entry._id) as string | number)}
                           className={cn(
-                            "p-2 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer",
+                            "p-2 rounded-lg transition-all opacity-100 cursor-pointer",
                             darkMode
-                              ? "hover:bg-red-500/10 text-gray-500 hover:text-red-400"
-                              : "hover:bg-red-50 text-gray-400 hover:text-red-600",
+                              ? "hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                              : "hover:bg-red-50 text-red-500 hover:text-red-600",
                           )}
                         >
                           <Trash2 size={14} />

@@ -4,7 +4,7 @@
  */
 
 export type Gender = 'male' | 'female';
-export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 
 export interface BodyData {
   gender: Gender;
@@ -50,10 +50,10 @@ export const calculateBMR = (data: BodyData): number => {
 export const calculateTDEE = (bmr: number, activityLevel: ActivityLevel): number => {
   const multipliers: Record<ActivityLevel, number> = {
     sedentary: 1.2,
-    lightly_active: 1.375,
-    moderately_active: 1.55,
-    very_active: 1.725,
-    extra_active: 1.9,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    very_active: 1.9,
   };
   return bmr * multipliers[activityLevel];
 };

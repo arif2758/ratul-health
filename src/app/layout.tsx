@@ -149,7 +149,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>{children}</SessionProvider>
-          <Toaster position="top-right" theme="dark" />
+          <Toaster 
+            position="top-center"
+            toastOptions={{
+              className: "backdrop-blur-xl bg-white/70 dark:bg-[#0F0F0F]/70 border border-black/5 dark:border-white/10 shadow-2xl rounded-2xl",
+              style: {
+                backdropFilter: "blur(16px)",
+              }
+            }} 
+          />
         </ThemeProvider>
       </body>
     </html>
