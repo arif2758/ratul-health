@@ -32,6 +32,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             id: user._id.toString(),
             email: user.email,
             name: user.name ?? undefined,
+            birthdate: user.birthdate,
+            gender: user.gender as "male" | "female",
           };
         } catch (error) {
           console.error("Auth error:", error);

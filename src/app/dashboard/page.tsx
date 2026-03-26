@@ -42,6 +42,7 @@ import { ChartSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { validateMetricsForm } from "@/lib/validation";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -72,12 +73,13 @@ const activityOptions = [
 ];
 
 export default function DashboardPage() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const { status } = useSession();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [darkMode, setDarkMode] = useState(true);
   const [unit] = useState<"metric" | "imperial">("metric");
 
   // Profile editing
@@ -109,17 +111,11 @@ export default function DashboardPage() {
     }
   }, [status, router]);
 
-  // Dark mode persistence
+  // Avoid hydration mismatch
   useEffect(() => {
-    const isDark = localStorage.getItem("darkMode") !== "false";
-    setDarkMode(isDark);
+    setMounted(true);
     setReportId(Math.random().toString(36).substring(2, 9).toUpperCase());
   }, []);
-
-  const handleDarkModeChange = (value: boolean) => {
-    setDarkMode(value);
-    localStorage.setItem("darkMode", String(value));
-  };
 
   // Fetch user and metrics
   useEffect(() => {
@@ -322,6 +318,14 @@ export default function DashboardPage() {
 
 
 
+  const darkMode = resolvedTheme === "dark";
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-[#0F0F0F]" />
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -332,7 +336,7 @@ export default function DashboardPage() {
       )}
     >
       {/* Navbar */}
-      <Navbar darkMode={darkMode} setDarkMode={handleDarkModeChange} />
+      <Navbar onOpenAuth={() => router.push("/?login=true")} />
 
       <main className="w-full px-4 sm:px-6 md:px-8 max-w-5xl mx-auto pt-6 sm:pt-8 md:pt-10 pb-8 sm:pb-12">
         {!user && !isLoading ? (

@@ -56,6 +56,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  birthdate?: string;
+  gender?: "male" | "female";
 }
 
 export interface LoginRequest {

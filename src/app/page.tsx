@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   Activity,
   Eye,
@@ -17,7 +18,7 @@ import {
   Target,
   Flame,
   TrendingUp,
-  BarChart3,
+ 
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -53,19 +54,18 @@ const features = [
 ];
 
 export default function Landing() {
-  const { status } = useSession();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
 
+  // Avoid hydration mismatch
   useEffect(() => {
-    const isDark = localStorage.getItem("darkMode") !== "false";
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -77,11 +77,13 @@ export default function Landing() {
     }
   }, []);
 
-  const handleDarkModeChange = (value: boolean) => {
-    setDarkMode(value);
-    localStorage.setItem("darkMode", String(value));
-    document.documentElement.classList.toggle("dark", value);
-  };
+  const darkMode = resolvedTheme === "dark";
+
+  if (!mounted) {
+    return (
+      <div className="w-full min-h-screen bg-white dark:bg-[#0F0F0F]" />
+    );
+  }
 
   const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -110,10 +112,13 @@ export default function Landing() {
           router.push("/dashboard");
         }
       } else {
+        const birthdate = formData.get("birthdate") as string;
+        const gender = formData.get("gender") as string;
+
         const res = await fetch("/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, name }),
+          body: JSON.stringify({ email, password, name, birthdate, gender }),
         });
 
         if (res.ok) {
@@ -156,8 +161,6 @@ export default function Landing() {
       )}
     >
       <Navbar
-        darkMode={darkMode}
-        setDarkMode={handleDarkModeChange}
         onOpenAuth={() => setShowAuthModal(true)}
       />
 
@@ -493,6 +496,45 @@ export default function Landing() {
                           : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900 placeholder-gray-600",
                       )}
                     />
+                  </div>
+                )}
+
+                {authMode === "register" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs uppercase tracking-wider opacity-70">
+                        Birthdate
+                      </label>
+                      <input
+                        type="date"
+                        name="birthdate"
+                        required
+                        className={cn(
+                          "w-full mt-2 px-4 py-3 rounded-lg border transition-colors",
+                          darkMode
+                            ? "bg-white/5 border-white/10 focus:border-primary text-white"
+                            : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase tracking-wider opacity-70">
+                        Gender
+                      </label>
+                      <select
+                        name="gender"
+                        required
+                        className={cn(
+                          "w-full mt-2 px-4 py-3 rounded-lg border transition-colors",
+                          darkMode
+                            ? "bg-white/5 border-white/10 focus:border-primary text-white"
+                            : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
+                        )}
+                      >
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    </div>
                   </div>
                 )}
 

@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Activity, Edit2, Save, X, RefreshCw, ImagePlus } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -22,13 +23,14 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function ProfilePage() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
 
   // Form states
   const [name, setName] = useState("");
@@ -44,16 +46,10 @@ export default function ProfilePage() {
     }
   }, [status, router]);
 
-  // Dark mode persistence
+  // Avoid hydration mismatch
   useEffect(() => {
-    const isDark = localStorage.getItem("darkMode") !== "false";
-    setDarkMode(isDark);
+    setMounted(true);
   }, []);
-
-  const handleDarkModeChange = (value: boolean) => {
-    setDarkMode(value);
-    localStorage.setItem("darkMode", String(value));
-  };
 
   // Fetch user data
   useEffect(() => {
@@ -125,27 +121,11 @@ export default function ProfilePage() {
     return age.toString();
   };
 
-  if (status === "loading" || isLoading) {
+  const darkMode = resolvedTheme === "dark";
+
+  if (!mounted || status === "loading" || isLoading) {
     return (
-      <div
-        className={cn(
-          "min-h-screen transition-colors",
-          darkMode
-            ? "bg-gradient-to-br from-[#0F0F0F] to-[#1a1a1a] text-white"
-            : "bg-gradient-to-br from-white to-gray-50 text-gray-900",
-        )}
-      >
-        <Navbar darkMode={darkMode} setDarkMode={handleDarkModeChange} />
-        <div className="flex items-center justify-center h-[calc(100vh-70px)]">
-          <div className="text-center space-y-4">
-            <RefreshCw
-              className="animate-spin mx-auto text-primary"
-              size={40}
-            />
-            <p>Loading profile...</p>
-          </div>
-        </div>
-      </div>
+      <div className="min-h-screen bg-white dark:bg-[#0F0F0F]" />
     );
   }
 
@@ -159,7 +139,7 @@ export default function ProfilePage() {
       )}
     >
       {/* Navbar */}
-      <Navbar darkMode={darkMode} setDarkMode={handleDarkModeChange} />
+      <Navbar onOpenAuth={() => router.push("/?login=true")} />
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-6 py-12">

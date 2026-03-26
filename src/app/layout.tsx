@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,8 +28,17 @@ export const metadata: Metadata = {
     default: "RatboD - Health Analysis & Tracking",
     template: "%s | RatboD",
   },
-  description: "Your personal body health analysis and tracking partner. Track BMI, BMR, TDEE, and body fat with modern progress insights.",
-  keywords: ["health analysis", "body tracking", "BMI calculator", "BMR calculator", "TDEE tracker", "health dashboard", "body fat calculator"],
+  description:
+    "Your personal body health analysis and tracking partner. Track BMI, BMR, TDEE, and body fat with modern progress insights.",
+  keywords: [
+    "health analysis",
+    "body tracking",
+    "BMI calculator",
+    "BMR calculator",
+    "TDEE tracker",
+    "health dashboard",
+    "body fat calculator",
+  ],
   authors: [{ name: "RatboD Team" }],
   creator: "RatboD",
   publisher: "RatboD",
@@ -37,13 +47,16 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+  ),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "RatboD - Health Analysis & Tracking",
-    description: "Track your body transformation with RatboD's premium health dashboard.",
+    description:
+      "Track your body transformation with RatboD's premium health dashboard.",
     url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     siteName: "RatboD",
     locale: "en_US",
@@ -60,7 +73,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RatboD - Health Analysis & Tracking",
-    description: "Track your body transformation with RatboD's premium health dashboard.",
+    description:
+      "Track your body transformation with RatboD's premium health dashboard.",
     creator: "@ratbod",
     images: ["/logo.png"],
   },
@@ -76,12 +90,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: "/logo.png", type: "image/png" },
-    ],
-    apple: [
-      { url: "/logo.png", sizes: "180x180", type: "image/png" },
-    ],
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: [{ url: "/logo.png", sizes: "180x180", type: "image/png" }],
     other: [
       {
         rel: "mask-icon",
@@ -104,10 +114,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-clip`}
-        suppressHydrationWarning
       >
         <script
           type="application/ld+json"
@@ -115,25 +124,33 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "RatboD",
-              "url": process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-              "description": "Body health analysis and tracking application for BMI, BMR, and TDEE.",
-              "applicationCategory": "HealthApplication",
-              "operatingSystem": "All",
-              "offers": {
+              name: "RatboD",
+              url: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+              description:
+                "Body health analysis and tracking application for BMI, BMR, and TDEE.",
+              applicationCategory: "HealthApplication",
+              operatingSystem: "All",
+              offers: {
                 "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
+                price: "0",
+                priceCurrency: "USD",
               },
-              "author": {
+              author: {
                 "@type": "Organization",
-                "name": "RatboD"
-              }
+                name: "RatboD",
+              },
             }),
           }}
         />
-        <SessionProvider>{children}</SessionProvider>
-        <Toaster position="top-right" theme="dark" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProvider>{children}</SessionProvider>
+          <Toaster position="top-right" theme="dark" />
+        </ThemeProvider>
       </body>
     </html>
   );

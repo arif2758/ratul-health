@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    const { email, password, name } = await request.json();
+    const { email, password, name, birthdate, gender } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       name: name || "",
+      birthdate: birthdate || "",
+      gender: gender || "male",
     });
 
     return NextResponse.json(

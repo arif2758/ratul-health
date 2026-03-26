@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 
 import {
   Sun,
@@ -27,19 +28,21 @@ function cn(...inputs: ClassValue[]) {
 }
 
 interface NavbarProps {
-  darkMode: boolean;
-  setDarkMode: (value: boolean) => void;
   onOpenAuth?: () => void;
 }
 
-export default function Navbar({
-  darkMode,
-  setDarkMode,
-  onOpenAuth,
-}: NavbarProps) {
+export default function Navbar({ onOpenAuth }: NavbarProps) {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -57,6 +60,14 @@ export default function Navbar({
     await signOut({ redirect: true, callbackUrl: "/" });
     setIsMenuOpen(false);
   };
+
+  const darkMode = resolvedTheme === "dark";
+
+  if (!mounted) {
+    return (
+      <nav className="border-b transition-all sticky top-0 z-40 w-full border-gray-200 bg-white dark:bg-[#0F0F0F] dark:border-white/5 h-[64px]" />
+    );
+  }
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -101,7 +112,7 @@ export default function Navbar({
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Theme switcher */}
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={() => setTheme(darkMode ? "light" : "dark")}
               className={cn(
                 "p-1.5 sm:p-2 rounded-lg transition-colors flex-shrink-0",
                 darkMode
