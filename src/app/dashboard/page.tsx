@@ -8,12 +8,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import {
-  Download,
-  Scale,
-  Activity,
-  RefreshCw,
-} from "lucide-react";
+import { Download, Scale, Activity, RefreshCw } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import jsPDF from "jspdf";
@@ -73,7 +68,7 @@ const activityOptions = [
 ];
 
 export default function DashboardPage() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { status } = useSession();
   const router = useRouter();
@@ -187,10 +182,17 @@ export default function DashboardPage() {
       activityLevel,
     };
 
-    if (!internalMetricData.height || !internalMetricData.weight || !internalMetricData.age)
+    if (
+      !internalMetricData.height ||
+      !internalMetricData.weight ||
+      !internalMetricData.age
+    )
       return null;
 
-    const bmi = calculateBMI(internalMetricData.weight, internalMetricData.height);
+    const bmi = calculateBMI(
+      internalMetricData.weight,
+      internalMetricData.height,
+    );
     const bmr = calculateBMR(internalMetricData);
     const tdee = calculateTDEE(bmr, internalMetricData.activityLevel);
     const bodyFat = calculateBodyFat(internalMetricData);
@@ -226,7 +228,6 @@ export default function DashboardPage() {
     };
   }, [weight, editHeight, editGender, age, waist, neck, hip, activityLevel]);
 
-
   const handleSaveMeasurement = async () => {
     try {
       const validationErrors = validateMetricsForm({
@@ -244,6 +245,14 @@ export default function DashboardPage() {
           toast.error(`${err.field}: ${err.message}`);
         });
         return;
+      }
+
+      // If height was missing from profile, update it now
+      if (!user?.height && editHeight) {
+        await queries.updateProfile({ height: parseFloat(editHeight) });
+        // Update local user state so the height field disappears
+        const updatedUser = await queries.getMe();
+        if (updatedUser) setUser(updatedUser);
       }
 
       await queries.saveMetrics({
@@ -316,14 +325,10 @@ export default function DashboardPage() {
     }
   };
 
-
-
   const darkMode = resolvedTheme === "dark";
 
   if (!mounted) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-[#0F0F0F]" />
-    );
+    return <div className="min-h-screen bg-white dark:bg-[#0F0F0F]" />;
   }
 
   return (
@@ -380,387 +385,467 @@ export default function DashboardPage() {
               </>
             ) : null}
 
-          {/* Quick Measurement Form */}
-          <div
-            className={cn(
-              "p-6 rounded-2xl border transition-all",
-              darkMode
-                ? "bg-white/5 border-white/10"
-                : "bg-gray-50 border-gray-200",
-            )}
-          >
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Scale size={20} />
-              Quick Measurement
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs uppercase tracking-wider opacity-60">
-                  Weight ({unit === "metric" ? "kg" : "lb"})
-                </label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  className={cn(
-                    "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                    darkMode
-                      ? "bg-white/5 border-white/10 focus:border-primary"
-                      : "bg-white border-gray-300 focus:border-primary",
-                  )}
-                  placeholder={unit === "metric" ? "70" : "154"}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs uppercase tracking-wider opacity-60">
-                    Waist ({unit === "metric" ? "cm" : "in"})
-                  </label>
-                  <input
-                    type="number"
-                    value={waist}
-                    onChange={(e) => setWaist(e.target.value)}
-                    className={cn(
-                      "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                      darkMode
-                        ? "bg-white/5 border-white/10 focus:border-primary"
-                        : "bg-white border-gray-300 focus:border-primary",
-                    )}
-                    placeholder="80"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs uppercase tracking-wider opacity-60">
-                    Neck ({unit === "metric" ? "cm" : "in"})
-                  </label>
-                  <input
-                    type="number"
-                    value={neck}
-                    onChange={(e) => setNeck(e.target.value)}
-                    className={cn(
-                      "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                      darkMode
-                        ? "bg-white/5 border-white/10 focus:border-primary"
-                        : "bg-white border-gray-300 focus:border-primary",
-                    )}
-                    placeholder="38"
-                  />
-                </div>
-              </div>
-
-              {editGender === "female" && (
-                <div>
-                  <label className="text-xs uppercase tracking-wider opacity-60">
-                    Hip ({unit === "metric" ? "cm" : "in"})
-                  </label>
-                  <input
-                    type="number"
-                    value={hip}
-                    onChange={(e) => setHip(e.target.value)}
-                    className={cn(
-                      "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                      darkMode
-                        ? "bg-white/5 border-white/10 focus:border-primary"
-                        : "bg-white border-gray-300 focus:border-primary",
-                    )}
-                    placeholder="95"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs uppercase tracking-wider opacity-60 flex items-center gap-2">
-                  <Activity size={14} /> Activity Level
-                </label>
-                <select
-                  value={activityLevel}
-                  onChange={(e) =>
-                    setActivityLevel(e.target.value as ActivityLevel)
-                  }
-                  className={cn(
-                    "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                    darkMode
-                      ? "bg-white/5 border-white/10 focus:border-primary"
-                      : "bg-white border-gray-300 focus:border-primary",
-                  )}
-                >
-                  {activityOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label} {opt.desc && `- ${opt.desc}`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {metrics && (
-                <div
-                  className={cn(
-                    "p-4 rounded-xl border transition-all",
-                    darkMode
-                      ? "bg-primary/10 border-primary/20"
-                      : "bg-primary-light border-primary/20",
-                  )}
-                >
-                  <p className="text-sm font-semibold mb-2">Quick Preview:</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      BMI:{" "}
-                      <span className="font-bold">
-                        {metrics.bmi.toFixed(1)}
-                      </span>
-                    </div>
-                    <div>
-                      Body Fat:{" "}
-                      <span className="font-bold">
-                        {metrics.bodyFat.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div>
-                      TDEE:{" "}
-                      <span className="font-bold">
-                        {Math.round(metrics.tdee)}
-                      </span>{" "}
-                      kcal
-                    </div>
-                    <div>
-                      Category:{" "}
-                      <span className="font-bold">{metrics.category}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={handleSaveMeasurement}
-                disabled={!weight}
-                className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                Save Measurement
-              </button>
-            </div>
-          </div>
-
-          {/* Analysis Results */}
-          {metrics && (
+            {/* Quick Measurement Form */}
             <div
               className={cn(
-                "p-6 rounded-2xl border transition-all space-y-4",
+                "p-6 rounded-2xl border transition-all",
                 darkMode
                   ? "bg-white/5 border-white/10"
                   : "bg-gray-50 border-gray-200",
               )}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Detailed Analysis</h3>
-                <button
-                  onClick={handleDownloadPdf}
-                  disabled={isGeneratingPdf}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
-                >
-                  {isGeneratingPdf ? (
-                    <RefreshCw size={18} className="animate-spin" />
-                  ) : (
-                    <Download size={18} />
-                  )}
-                  {isGeneratingPdf ? "Generating..." : "Download PDF"}
-                </button>
-              </div>
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Scale size={20} />
+                Quick Measurement
+              </h3>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-xs uppercase opacity-60 mb-1">BMI</p>
-                  <p className="text-2xl font-bold">{metrics.bmi.toFixed(1)}</p>
-                  <p className="text-xs text-primary">{metrics.category}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase opacity-60 mb-1">
-                    Body Fat %
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {metrics.bodyFat.toFixed(1)}%
-                  </p>
-                  <p className="text-xs opacity-60">
-                    Ideal: {metrics.idealFatRange.min}-
-                    {metrics.idealFatRange.max}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase opacity-60 mb-1">BMR</p>
-                  <p className="text-2xl font-bold">
-                    {Math.round(metrics.bmr)}
-                  </p>
-                  <p className="text-xs opacity-60">kcal/day</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase opacity-60 mb-1">TDEE</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {Math.round(metrics.tdee)}
-                  </p>
-                  <p className="text-xs opacity-60">kcal/day</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-        {/* Goals Section */}
-        {user && (
-          <div className="mt-12">
-            <Goals
-              darkMode={darkMode}
-              unit={unit}
-              currentWeight={parseFloat(weight) || 0}
-              currentBodyFat={metrics?.bodyFat}
-            />
-          </div>
-        )}
-
-        {/* History Section */}
-        {user && (
-          <div className="mt-12">
-            <HistoryComponent
-              darkMode={darkMode}
-              unit={unit}
-              refreshTrigger={historyRefreshTrigger}
-              isLoggedIn={true}
-            />
-          </div>
-        )}
-
-        {/* Hidden PDF Report */}
-        <div className="fixed -left-2499.75 top-0 pointer-events-none">
-          <div
-            ref={reportRef}
-            style={{ backgroundColor: "#ffffff", color: "#1a1a1a" }}
-            className="p-12 w-200 space-y-12"
-          >
-            <div
-              style={{ borderBottom: "1px solid #e5e7eb" }}
-              className="flex justify-between items-start pb-8"
-            >
-              <div>
-                <Image
-                  src="/logo.png"
-                  alt="RatboD Logo"
-                  width={40}
-                  height={40}
-                  style={{ marginBottom: "8px" }}
-                />
-                <h1
-                  style={{ color: "#32CD32", fontSize: "2rem", fontWeight: "900" }}
-                >
-                  RatboD
-                </h1>
-                <p style={{ color: "#6b7280" }}>
-                  Health Analysis for {editName || "User"}
-                </p>
-              </div>
-              <div style={{ color: "#9ca3af" }} className="text-right text-sm">
-                <p>Generated on {new Date().toLocaleDateString()}</p>
-                <p>
-                  Report ID:{" "}
-                  {reportId}
-                </p>
-              </div>
-            </div>
-
-            {metrics && (
-              <div className="grid grid-cols-2 gap-12">
-                <div className="space-y-6">
-                  <h2
-                    style={{
-                      borderBottom: "1px solid #e5e7eb",
-                      color: "#1f2937",
-                    }}
-                    className="text-xl font-semibold pb-2"
-                  >
-                    Profile
-                  </h2>
-                  <div className="grid grid-cols-2 gap-y-4 text-sm space-y-2">
-                    <span style={{ color: "#6b7280" }}>Gender:</span>
-                    <span
-                      style={{ color: "#111827" }}
-                      className="font-medium capitalize"
+              <div className="space-y-4">
+                {(!user?.birthdate || !user?.gender || !user?.height) && (
+                  <div className="p-3 mb-2 rounded-lg border border-primary/20 bg-primary/5 dark:bg-primary/10 text-xs flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-primary mb-0.5">
+                        Complete Your Profile
+                      </p>
+                      <p className="opacity-80">
+                        Add missing details for accurate health metrics.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push("/profile")}
+                      className="text-primary font-medium hover:underline whitespace-nowrap ml-4"
                     >
-                      {editGender}
-                    </span>
-                    <span style={{ color: "#6b7280" }}>Age:</span>
-                    <span style={{ color: "#111827" }} className="font-medium">
-                      {age} years
-                    </span>
-                    <span style={{ color: "#6b7280" }}>Height:</span>
-                    <span style={{ color: "#111827" }} className="font-medium">
-                      {editHeight} {unit === "metric" ? "cm" : "in"}
-                    </span>
-                    <span style={{ color: "#6b7280" }}>Weight:</span>
-                    <span style={{ color: "#111827" }} className="font-medium">
-                      {weight} {unit === "metric" ? "kg" : "lb"}
-                    </span>
+                      Go to Profile
+                    </button>
+                  </div>
+                )}
+
+                <div
+                  className={cn(
+                    "grid gap-4",
+                    !user?.height ? "grid-cols-2" : "grid-cols-1",
+                  )}
+                >
+                  <div>
+                    <label className="text-xs uppercase tracking-wider opacity-60">
+                      Weight ({unit === "metric" ? "kg" : "lb"}) *
+                    </label>
+                    <input
+                      type="number"
+                      value={weight}
+                      onChange={(e) => setWeight(e.target.value)}
+                      required
+                      className={cn(
+                        "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                        darkMode
+                          ? "bg-white/5 border-white/10 focus:border-primary"
+                          : "bg-white border-gray-300 focus:border-primary",
+                      )}
+                      placeholder={unit === "metric" ? "70" : "154"}
+                    />
+                  </div>
+                  {!user?.height && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wider opacity-60">
+                        Height ({unit === "metric" ? "cm" : "in"}) *
+                      </label>
+                      <input
+                        type="number"
+                        value={editHeight}
+                        onChange={(e) => setEditHeight(e.target.value)}
+                        required
+                        className={cn(
+                          "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                          darkMode
+                            ? "bg-white/5 border-primary/50 focus:border-primary"
+                            : "bg-white border-primary/50 focus:border-primary",
+                        )}
+                        placeholder={unit === "metric" ? "175" : "69"}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs uppercase tracking-wider opacity-60">
+                      Waist ({unit === "metric" ? "cm" : "in"})
+                    </label>
+                    <input
+                      type="number"
+                      value={waist}
+                      onChange={(e) => setWaist(e.target.value)}
+                      className={cn(
+                        "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                        darkMode
+                          ? "bg-white/5 border-white/10 focus:border-primary"
+                          : "bg-white border-gray-300 focus:border-primary",
+                      )}
+                      placeholder="80"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-wider opacity-60">
+                      Neck ({unit === "metric" ? "cm" : "in"})
+                    </label>
+                    <input
+                      type="number"
+                      value={neck}
+                      onChange={(e) => setNeck(e.target.value)}
+                      className={cn(
+                        "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                        darkMode
+                          ? "bg-white/5 border-white/10 focus:border-primary"
+                          : "bg-white border-gray-300 focus:border-primary",
+                      )}
+                      placeholder="38"
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <h2
-                    style={{
-                      borderBottom: "1px solid #e5e7eb",
-                      color: "#1f2937",
-                    }}
-                    className="text-xl font-semibold pb-2"
+                {editGender === "female" && (
+                  <div>
+                    <label className="text-xs uppercase tracking-wider opacity-60">
+                      Hip ({unit === "metric" ? "cm" : "in"})
+                    </label>
+                    <input
+                      type="number"
+                      value={hip}
+                      onChange={(e) => setHip(e.target.value)}
+                      className={cn(
+                        "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                        darkMode
+                          ? "bg-white/5 border-white/10 focus:border-primary"
+                          : "bg-white border-gray-300 focus:border-primary",
+                      )}
+                      placeholder="95"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs uppercase tracking-wider opacity-60 flex items-center gap-2">
+                    <Activity size={14} /> Activity Level *
+                  </label>
+                  <select
+                    value={activityLevel}
+                    onChange={(e) =>
+                      setActivityLevel(e.target.value as ActivityLevel)
+                    }
+                    className={cn(
+                      "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+                      darkMode
+                        ? "bg-white/5 border-white/10 focus:border-primary"
+                        : "bg-white border-gray-300 focus:border-primary",
+                    )}
                   >
-                    Key Metrics
-                  </h2>
-                  <div className="grid grid-cols-2 gap-y-4 text-sm space-y-2">
-                    <span style={{ color: "#6b7280" }}>BMI:</span>
-                    <span style={{ color: "#111827" }} className="font-bold">
-                      {metrics.bmi.toFixed(1)} ({metrics.category})
-                    </span>
-                    <span style={{ color: "#6b7280" }}>Body Fat:</span>
-                    <span style={{ color: "#111827" }} className="font-bold">
+                    {activityOptions.map((opt) => (
+                      <option
+                        key={opt.value}
+                        value={opt.value}
+                        className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
+                      >
+                        {opt.label} {opt.desc && `- ${opt.desc}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {metrics && (
+                  <div
+                    className={cn(
+                      "p-4 rounded-xl border transition-all",
+                      darkMode
+                        ? "bg-primary/10 border-primary/20"
+                        : "bg-primary-light border-primary/20",
+                    )}
+                  >
+                    <p className="text-sm font-semibold mb-2">Quick Preview:</p>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        BMI:{" "}
+                        <span className="font-bold">
+                          {metrics.bmi.toFixed(1)}
+                        </span>
+                      </div>
+                      <div>
+                        Body Fat:{" "}
+                        <span className="font-bold">
+                          {metrics.bodyFat.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div>
+                        TDEE:{" "}
+                        <span className="font-bold">
+                          {Math.round(metrics.tdee)}
+                        </span>{" "}
+                        kcal
+                      </div>
+                      <div>
+                        Category:{" "}
+                        <span className="font-bold">{metrics.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleSaveMeasurement}
+                  disabled={!weight}
+                  className="w-full px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Save Measurement
+                </button>
+              </div>
+            </div>
+
+            {/* Analysis Results */}
+            {metrics && (
+              <div
+                className={cn(
+                  "p-6 rounded-2xl border transition-all space-y-4",
+                  darkMode
+                    ? "bg-white/5 border-white/10"
+                    : "bg-gray-50 border-gray-200",
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Detailed Analysis</h3>
+                  <button
+                    onClick={handleDownloadPdf}
+                    disabled={isGeneratingPdf}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
+                  >
+                    {isGeneratingPdf ? (
+                      <RefreshCw size={18} className="animate-spin" />
+                    ) : (
+                      <Download size={18} />
+                    )}
+                    {isGeneratingPdf ? "Generating..." : "Download PDF"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-xs uppercase opacity-60 mb-1">BMI</p>
+                    <p className="text-2xl font-bold">
+                      {metrics.bmi.toFixed(1)}
+                    </p>
+                    <p className="text-xs text-primary">{metrics.category}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase opacity-60 mb-1">
+                      Body Fat %
+                    </p>
+                    <p className="text-2xl font-bold">
                       {metrics.bodyFat.toFixed(1)}%
-                    </span>
-                    <span style={{ color: "#6b7280" }}>BMR:</span>
-                    <span style={{ color: "#111827" }} className="font-bold">
-                      {Math.round(metrics.bmr)} kcal/day
-                    </span>
-                    <span style={{ color: "#6b7280" }}>TDEE:</span>
-                    <span style={{ color: "#32CD32" }} className="font-bold">
-                      {Math.round(metrics.tdee)} kcal/day
-                    </span>
+                    </p>
+                    <p className="text-xs opacity-60">
+                      Ideal: {metrics.idealFatRange.min}-
+                      {metrics.idealFatRange.max}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase opacity-60 mb-1">BMR</p>
+                    <p className="text-2xl font-bold">
+                      {Math.round(metrics.bmr)}
+                    </p>
+                    <p className="text-xs opacity-60">kcal/day</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase opacity-60 mb-1">TDEE</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {Math.round(metrics.tdee)}
+                    </p>
+                    <p className="text-xs opacity-60">kcal/day</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div
-              style={{ backgroundColor: "#f0fdf4", borderRadius: "1rem" }}
-              className="p-8 space-y-4"
-            >
-              <h3 style={{ color: "#111827" }} className="font-semibold">
-                Health Recommendations
-              </h3>
-              <p
-                style={{ color: "#4b5563" }}
-                className="text-sm leading-relaxed"
-              >
-                Based on your health metrics, maintain a balanced diet and
-                regular exercise routine. Always consult with a healthcare
-                professional before making significant changes to your
-                lifestyle.
-              </p>
-            </div>
+            {/* Goals Section */}
+            {user && (
+              <div className="mt-12">
+                <Goals
+                  darkMode={darkMode}
+                  unit={unit}
+                  currentWeight={parseFloat(weight) || 0}
+                  currentBodyFat={metrics?.bodyFat}
+                />
+              </div>
+            )}
 
-            <div
-              style={{ borderTop: "1px solid #e5e7eb", color: "#9ca3af" }}
-              className="pt-12 text-center text-[10px]"
-            >
-              <p>© {new Date().getFullYear()} RatboD. All rights reserved.</p>
+            {/* History Section */}
+            {user && (
+              <div className="mt-12">
+                <HistoryComponent
+                  darkMode={darkMode}
+                  unit={unit}
+                  refreshTrigger={historyRefreshTrigger}
+                  isLoggedIn={true}
+                />
+              </div>
+            )}
+
+            {/* Hidden PDF Report */}
+            <div className="fixed -left-2499.75 top-0 pointer-events-none">
+              <div
+                ref={reportRef}
+                style={{ backgroundColor: "#ffffff", color: "#1a1a1a" }}
+                className="p-12 w-200 space-y-12"
+              >
+                <div
+                  style={{ borderBottom: "1px solid #e5e7eb" }}
+                  className="flex justify-between items-start pb-8"
+                >
+                  <div>
+                    <Image
+                      src="/logo.png"
+                      alt="RatboD Logo"
+                      width={40}
+                      height={40}
+                      style={{ marginBottom: "8px" }}
+                    />
+                    <h1
+                      style={{
+                        color: "#32CD32",
+                        fontSize: "2rem",
+                        fontWeight: "900",
+                      }}
+                    >
+                      RatboD
+                    </h1>
+                    <p style={{ color: "#6b7280" }}>
+                      Health Analysis for {editName || "User"}
+                    </p>
+                  </div>
+                  <div
+                    style={{ color: "#9ca3af" }}
+                    className="text-right text-sm"
+                  >
+                    <p>Generated on {new Date().toLocaleDateString()}</p>
+                    <p>Report ID: {reportId}</p>
+                  </div>
+                </div>
+
+                {metrics && (
+                  <div className="grid grid-cols-2 gap-12">
+                    <div className="space-y-6">
+                      <h2
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                          color: "#1f2937",
+                        }}
+                        className="text-xl font-semibold pb-2"
+                      >
+                        Profile
+                      </h2>
+                      <div className="grid grid-cols-2 gap-y-4 text-sm space-y-2">
+                        <span style={{ color: "#6b7280" }}>Gender:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-medium capitalize"
+                        >
+                          {editGender}
+                        </span>
+                        <span style={{ color: "#6b7280" }}>Age:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-medium"
+                        >
+                          {age} years
+                        </span>
+                        <span style={{ color: "#6b7280" }}>Height:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-medium"
+                        >
+                          {editHeight} {unit === "metric" ? "cm" : "in"}
+                        </span>
+                        <span style={{ color: "#6b7280" }}>Weight:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-medium"
+                        >
+                          {weight} {unit === "metric" ? "kg" : "lb"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <h2
+                        style={{
+                          borderBottom: "1px solid #e5e7eb",
+                          color: "#1f2937",
+                        }}
+                        className="text-xl font-semibold pb-2"
+                      >
+                        Key Metrics
+                      </h2>
+                      <div className="grid grid-cols-2 gap-y-4 text-sm space-y-2">
+                        <span style={{ color: "#6b7280" }}>BMI:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-bold"
+                        >
+                          {metrics.bmi.toFixed(1)} ({metrics.category})
+                        </span>
+                        <span style={{ color: "#6b7280" }}>Body Fat:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-bold"
+                        >
+                          {metrics.bodyFat.toFixed(1)}%
+                        </span>
+                        <span style={{ color: "#6b7280" }}>BMR:</span>
+                        <span
+                          style={{ color: "#111827" }}
+                          className="font-bold"
+                        >
+                          {Math.round(metrics.bmr)} kcal/day
+                        </span>
+                        <span style={{ color: "#6b7280" }}>TDEE:</span>
+                        <span
+                          style={{ color: "#32CD32" }}
+                          className="font-bold"
+                        >
+                          {Math.round(metrics.tdee)} kcal/day
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{ backgroundColor: "#f0fdf4", borderRadius: "1rem" }}
+                  className="p-8 space-y-4"
+                >
+                  <h3 style={{ color: "#111827" }} className="font-semibold">
+                    Health Recommendations
+                  </h3>
+                  <p
+                    style={{ color: "#4b5563" }}
+                    className="text-sm leading-relaxed"
+                  >
+                    Based on your health metrics, maintain a balanced diet and
+                    regular exercise routine. Always consult with a healthcare
+                    professional before making significant changes to your
+                    lifestyle.
+                  </p>
+                </div>
+
+                <div
+                  style={{ borderTop: "1px solid #e5e7eb", color: "#9ca3af" }}
+                  className="pt-12 text-center text-[10px]"
+                >
+                  <p>
+                    © {new Date().getFullYear()} RatboD. All rights reserved.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    )}
-    </main>
-  </div>
-);
+        )}
+      </main>
+    </div>
+  );
 }
