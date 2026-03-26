@@ -41,6 +41,7 @@ import { ProgressChart } from "@/components/ProgressChart";
 import { ChartSkeleton, CardSkeleton } from "@/components/Skeleton";
 import { validateMetricsForm } from "@/lib/validation";
 import Navbar from "@/components/Navbar";
+import Image from "next/image";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -98,6 +99,7 @@ export default function DashboardPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
+  const [reportId, setReportId] = useState("");
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Redirect if not logged in
@@ -111,6 +113,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") !== "false";
     setDarkMode(isDark);
+    setReportId(Math.random().toString(36).substring(2, 9).toUpperCase());
   }, []);
 
   const handleDarkModeChange = (value: boolean) => {
@@ -633,9 +636,15 @@ export default function DashboardPage() {
               className="flex justify-between items-start pb-8"
             >
               <div>
+                <Image
+                  src="/logo.png"
+                  alt="RatboD Logo"
+                  width={40}
+                  height={40}
+                  style={{ marginBottom: "8px" }}
+                />
                 <h1
-                  style={{ color: "#32CD32" }}
-                  className="text-4xl font-black tracking-tighter"
+                  style={{ color: "#32CD32", fontSize: "2rem", fontWeight: "900" }}
                 >
                   RatboD
                 </h1>
@@ -647,7 +656,7 @@ export default function DashboardPage() {
                 <p>Generated on {new Date().toLocaleDateString()}</p>
                 <p>
                   Report ID:{" "}
-                  {Math.random().toString(36).substr(2, 9).toUpperCase()}
+                  {reportId}
                 </p>
               </div>
             </div>

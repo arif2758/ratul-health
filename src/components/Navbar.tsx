@@ -9,18 +9,15 @@ import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+
 import {
-  Activity,
   Sun,
   Moon,
   LogOut,
   User,
   LayoutDashboard,
   ChevronDown,
-  Menu,
   LogIn,
-  X,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -41,9 +38,7 @@ export default function Navbar({
   onOpenAuth,
 }: NavbarProps) {
   const { data: session } = useSession();
-  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -84,8 +79,15 @@ export default function Navbar({
             href="/"
             className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity shrink-0"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary rounded-md flex items-center justify-center text-white flex-shrink-0">
-              <Activity size={12} className="sm:w-3.5 sm:h-3.5" />
+            <div className="relative w-10 h-10 shrink-0">
+              <Image
+                src="/logo.png"
+                alt="RatboD Logo"
+                width={300}
+                height={300}
+                className="object-contain rounded-full"
+                priority
+              />
             </div>
             <h1 className="text-base sm:text-lg font-black tracking-tighter inline-block min-w-0">
               RatboD

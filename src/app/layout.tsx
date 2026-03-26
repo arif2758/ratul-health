@@ -50,9 +50,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/apple-touch-icon.png",
-        width: 180,
-        height: 180,
+        url: "/logo.png",
+        width: 512,
+        height: 512,
         alt: "RatboD Health Analysis",
       },
     ],
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     title: "RatboD - Health Analysis & Tracking",
     description: "Track your body transformation with RatboD's premium health dashboard.",
     creator: "@ratbod",
-    images: ["/apple-touch-icon.png"],
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
@@ -77,16 +77,15 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/logo.png", sizes: "180x180", type: "image/png" },
     ],
     other: [
       {
         rel: "mask-icon",
-        url: "/mask-icon.svg",
+        url: "/logo.png",
         color: "#32CD32",
       },
     ],
