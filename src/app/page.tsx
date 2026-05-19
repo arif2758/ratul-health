@@ -186,7 +186,7 @@ export default function Landing() {
 
       <main className="w-full">
         {/* Hero Section */}
-        <section className="relative w-full px-4 sm:px-6 md:px-8 pt-12 sm:pt-16 md:pt-24 pb-16 sm:pb-24 md:pb-32 overflow-hidden">
+        <section className="relative w-full px-4 sm:px-6 md:px-8 pt-6 sm:pt-8 md:pt-10 pb-16 sm:pb-24 md:pb-32 overflow-hidden">
           <div className="absolute inset-0 -z-10">
             <div
               className={cn(
@@ -204,7 +204,27 @@ export default function Landing() {
 
           <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-              <div className="space-y-6 sm:space-y-8">
+              <div className="space-y-5 sm:space-y-6">
+                {/* Stats Badge */}
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 px-3 py-1.5 rounded-full border backdrop-blur-sm text-xs font-medium transition-all w-fit",
+                    darkMode
+                      ? "bg-white/5 border-white/10 text-gray-200 hover:bg-white/10"
+                      : "bg-white/60 border-gray-200 text-gray-700 hover:bg-white",
+                  )}
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                  </span>
+                  <CheckCircle2 size={13} className="text-primary" />
+                  <span>
+                    <span className="font-bold">10,000+</span> users tracking
+                    their health
+                  </span>
+                </div>
+
                 <h1 className="text-4xl xs:text-5xl sm:text-6xl font-black tracking-tighter leading-tight">
                   Track Your
                   <span className="block text-primary">Health Better</span>
@@ -220,33 +240,14 @@ export default function Landing() {
                   of your wellness journey.
                 </p>
 
-                <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 pt-2">
+                <div className="pt-2">
                   <button
                     onClick={() => setShowAuthModal(true)}
-                    className="px-6 sm:px-8 py-2.5 sm:py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all font-semibold flex items-center justify-center gap-2 w-full xs:flex-1"
+                    className="px-6 sm:px-8 py-2.5 sm:py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all font-semibold flex items-center justify-center gap-2 w-full xs:w-auto"
                   >
                     Get Started
                     <ArrowRight size={18} />
                   </button>
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className={cn(
-                      "px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold transition-all border w-full xs:flex-1",
-                      darkMode
-                        ? "border-white/20 hover:border-white/40 hover:bg-white/5"
-                        : "border-gray-300 hover:border-gray-400 hover:bg-gray-50",
-                    )}
-                  >
-                    Learn More
-                  </button>
-                </div>
-
-                <div className="text-sm opacity-70">
-                  <CheckCircle2
-                    size={16}
-                    className="inline mr-2 text-primary"
-                  />
-                  Join 10,000+ users tracking their health
                 </div>
               </div>
 
@@ -255,8 +256,8 @@ export default function Landing() {
                   className={cn(
                     "p-8 rounded-2xl border backdrop-blur-sm transition-all",
                     darkMode
-                      ? "bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/15 hover:border-primary/30"
-                      : "bg-gradient-to-br from-white/40 via-white/30 to-white/20 border-white/30 hover:border-primary/30",
+                      ? "bg-linear-to-br from-white/10 via-white/5 to-transparent border-white/15 hover:border-primary/30"
+                      : "bg-linear-to-br from-white/40 via-white/30 to-white/20 border-white/30 hover:border-primary/30",
                   )}
                 >
                   <p className="text-xs uppercase tracking-widest opacity-60 mb-6">
@@ -274,7 +275,7 @@ export default function Landing() {
                         darkMode ? "bg-white/10" : "bg-white/40",
                       )}
                     >
-                      <div className="h-full w-3/4 bg-gradient-to-r from-primary to-blue-500 rounded-full" />
+                      <div className="h-full w-3/4 bg-linear-to-r from-primary to-blue-500 rounded-full" />
                     </div>
                   </div>
 
@@ -289,7 +290,7 @@ export default function Landing() {
                         darkMode ? "bg-white/10" : "bg-white/40",
                       )}
                     >
-                      <div className="h-full w-2/3 bg-gradient-to-r from-primary to-green-500 rounded-full" />
+                      <div className="h-full w-2/3 bg-linear-to-r from-primary to-green-500 rounded-full" />
                     </div>
                   </div>
 
@@ -304,7 +305,7 @@ export default function Landing() {
                         darkMode ? "bg-white/10" : "bg-white/40",
                       )}
                     >
-                      <div className="h-full w-4/5 bg-gradient-to-r from-primary to-orange-500 rounded-full" />
+                      <div className="h-full w-4/5 bg-linear-to-r from-primary to-orange-500 rounded-full" />
                     </div>
                   </div>
 
@@ -353,7 +354,7 @@ export default function Landing() {
         {/* Quick Measurement Form */}
         <section
           className={cn(
-            "w-full py-12 sm:py-16 px-4 sm:px-6 md:px-8 border-t",
+            "w-full py-4 sm:py-8 px-4 sm:px-6 md:px-8",
             darkMode ? "border-white/10" : "border-gray-200",
           )}
         >
@@ -423,8 +424,8 @@ export default function Landing() {
               className={cn(
                 "p-8 sm:p-12 rounded-2xl border text-center space-y-6",
                 darkMode
-                  ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20"
-                  : "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20",
+                  ? "bg-linear-to-br from-primary/10 to-primary/5 border-primary/20"
+                  : "bg-linear-to-br from-primary/10 to-primary/5 border-primary/20",
               )}
             >
               <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold">
@@ -596,7 +597,7 @@ export default function Landing() {
                         <SelectTrigger className={modalSelectTriggerClass}>
                           <SelectValue placeholder="Select" />
                         </SelectTrigger>
-                        <SelectContent className="max-w-[var(--radix-select-trigger-width)]">
+                        <SelectContent className="max-w-(--radix-select-trigger-width)">
                           <SelectItem value="male">Male</SelectItem>
                           <SelectItem value="female">Female</SelectItem>
                         </SelectContent>

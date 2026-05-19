@@ -246,7 +246,7 @@ export default function DashboardPage() {
               onGoToProfile={() => router.push("/profile")}
             />
 
-            {/* History Section */}
+                      {/* History Section */}
             {user && (
               <div className="mt-12">
                 <HistoryComponent
@@ -254,6 +254,7 @@ export default function DashboardPage() {
                   unit={unit}
                   refreshTrigger={historyRefreshTrigger}
                   isLoggedIn={true}
+                  limit={5} // <--- Added this line
                 />
               </div>
             )}
