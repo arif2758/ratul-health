@@ -5,6 +5,13 @@ import { Scale, Activity, ChevronDown } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   calculateBMI,
   calculateBMR,
   calculateTDEE,
@@ -39,13 +46,9 @@ const activityOptions = [
 
 interface QuickMeasurementFormProps {
   darkMode: boolean;
-  /** If provided, height field will be hidden and this value used */
   lockedHeight?: number;
-  /** If provided, gender field will be hidden and this value used */
   lockedGender?: Gender;
-  /** If provided, age field will be hidden and this value used */
   lockedAge?: number;
-  /** Called when user clicks Save — only available when logged in */
   onSave?: (data: {
     weight: number;
     height: number;
@@ -57,7 +60,6 @@ interface QuickMeasurementFormProps {
     activityLevel: ActivityLevel;
   }) => Promise<void>;
   isSaving?: boolean;
-  /** Show profile incomplete banner */
   showProfileBanner?: boolean;
   onGoToProfile?: () => void;
 }
@@ -160,6 +162,14 @@ export function QuickMeasurementForm({
     setHip("");
   };
 
+  // Shared trigger style to match input style
+  const selectTriggerClass = cn(
+    "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+    darkMode
+      ? "bg-white/5 border-white/10 focus:border-primary text-white"
+      : "bg-white border-gray-300 focus:border-primary text-gray-900",
+  );
+
   return (
     <div
       className={cn(
@@ -198,7 +208,7 @@ export function QuickMeasurementForm({
             </div>
           )}
 
-          {/* Weight + Height (if not locked) */}
+          {/* Weight + Height */}
           <div
             className={cn(
               "grid gap-4",
@@ -243,7 +253,7 @@ export function QuickMeasurementForm({
             )}
           </div>
 
-          {/* Age + Gender (if not locked) */}
+          {/* Age + Gender */}
           {(!lockedAge || !lockedGender) && (
             <div className="grid grid-cols-2 gap-4">
               {!lockedAge && (
@@ -266,33 +276,22 @@ export function QuickMeasurementForm({
                 </div>
               )}
               {!lockedGender && (
-                <div>
+                <div className="min-w-0">
                   <label className="text-xs uppercase tracking-wider opacity-60">
                     Gender *
                   </label>
-                  <select
+                  <Select
                     value={gender}
-                    onChange={(e) => setGender(e.target.value as Gender)}
-                    className={cn(
-                      "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                      darkMode
-                        ? "bg-white/5 border-white/10 focus:border-primary"
-                        : "bg-white border-gray-300 focus:border-primary",
-                    )}
+                    onValueChange={(val) => setGender(val as Gender)}
                   >
-                    <option
-                      value="male"
-                      className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
-                    >
-                      Male
-                    </option>
-                    <option
-                      value="female"
-                      className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
-                    >
-                      Female
-                    </option>
-                  </select>
+                    <SelectTrigger className={selectTriggerClass}>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent className="max-w-[var(--radix-select-trigger-width)]">
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
@@ -336,7 +335,7 @@ export function QuickMeasurementForm({
             </div>
           </div>
 
-          {/* Hip (female only) */}
+          {/* Hip */}
           {effectiveGender === "female" && (
             <div>
               <label className="text-xs uppercase tracking-wider opacity-60">
@@ -358,32 +357,28 @@ export function QuickMeasurementForm({
           )}
 
           {/* Activity Level */}
-          <div>
+          <div className="min-w-0">
             <label className="text-xs uppercase tracking-wider opacity-60 flex items-center gap-2">
               <Activity size={14} /> Activity Level *
             </label>
-            <select
+            <Select
               value={activityLevel}
-              onChange={(e) =>
-                setActivityLevel(e.target.value as ActivityLevel)
-              }
-              className={cn(
-                "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
-                darkMode
-                  ? "bg-white/5 border-white/10 focus:border-primary"
-                  : "bg-white border-gray-300 focus:border-primary",
-              )}
+              onValueChange={(val) => setActivityLevel(val as ActivityLevel)}
             >
-              {activityOptions.map((opt) => (
-                <option
-                  key={opt.value}
-                  value={opt.value}
-                  className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
-                >
-                  {opt.label} {opt.desc && `- ${opt.desc}`}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className={selectTriggerClass}>
+                <SelectValue placeholder="Select activity level" />
+              </SelectTrigger>
+              <SelectContent className="max-w-[var(--radix-select-trigger-width)]">
+                {activityOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{opt.label}</span>
+                      <span className="text-[10px] opacity-60">{opt.desc}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -391,7 +386,6 @@ export function QuickMeasurementForm({
         <div className="flex-1 min-w-0 space-y-4 hidden md:block">
           {metrics ? (
             <>
-              {/* Your Health Goal */}
               {(() => {
                 const { type, kg, lb } = metrics.weightDiff;
                 const isMaintain = type === "maintain";
@@ -614,7 +608,6 @@ export function QuickMeasurementForm({
             Analysis Results
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* BMI */}
             <div
               className={cn(
                 "p-4 rounded-xl border",
@@ -657,7 +650,6 @@ export function QuickMeasurementForm({
               </div>
             </div>
 
-            {/* Body Fat */}
             <div
               className={cn(
                 "p-4 rounded-xl border",
@@ -678,7 +670,6 @@ export function QuickMeasurementForm({
               </p>
             </div>
 
-            {/* BMR */}
             <div
               className={cn(
                 "p-4 rounded-xl border",
@@ -701,7 +692,6 @@ export function QuickMeasurementForm({
               </p>
             </div>
 
-            {/* TDEE */}
             <div
               className={cn(
                 "p-4 rounded-xl border",
@@ -727,7 +717,6 @@ export function QuickMeasurementForm({
         </div>
       )}
 
-      {/* Save button — only shown when onSave is provided (logged in) */}
       {onSave && (
         <button
           onClick={handleSave}

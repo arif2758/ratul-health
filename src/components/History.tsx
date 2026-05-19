@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Minus,
   Trash2,
+  History as HistoryIcon,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -43,25 +44,23 @@ export default function History({
     try {
       let data: Metrics[] = [];
 
-      // Always get local history
       const localData = JSON.parse(
         localStorage.getItem("ratbod_history") || "[]",
       ) as Metrics[];
 
       if (isLoggedIn) {
         const cloudData = await queries.getMetricsHistory();
-        // Merge and sort by date descending
-        // We use a Map to avoid duplicates if we have IDs
-        const merged = [...cloudData, ...localData].sort(
+        const safeCloudData = Array.isArray(cloudData) ? cloudData : [];
+
+        data = [...safeCloudData, ...localData].sort(
           (a: Metrics, b: Metrics) => {
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return dateB - dateA;
           },
         );
-        data = merged;
       } else {
-        data = localData.sort((a: Metrics, b: Metrics) => {
+        data = [...localData].sort((a: Metrics, b: Metrics) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           return dateB - dateA;
@@ -71,7 +70,6 @@ export default function History({
       setHistory(data);
     } catch (error) {
       console.error("Failed to fetch history:", error);
-      // Fallback to local on error
       const localData = JSON.parse(
         localStorage.getItem("ratbod_history") || "[]",
       ) as Metrics[];
@@ -81,20 +79,10 @@ export default function History({
     }
   };
 
-  const clearLocalHistory = () => {
-    if (
-      window.confirm(
-        "Are you sure you want to clear your local history? This will not affect your account history.",
-      )
-    ) {
-      localStorage.removeItem("ratbod_history");
-      fetchHistory();
-    }
-  };
-
   const confirmDelete = (id: number | string) => {
     toast("Delete Measurement?", {
-      description: "Are you sure you want to delete this? This action cannot be undone.",
+      description:
+        "Are you sure you want to delete this? This action cannot be undone.",
       action: {
         label: "Delete",
         onClick: () => deleteEntry(id),
@@ -110,10 +98,8 @@ export default function History({
   };
 
   const deleteEntry = async (id: number | string) => {
-
     try {
       if (isLoggedIn) {
-        // Try to delete from cloud first if logged in
         try {
           await queries.deleteMetric(id as number);
         } catch (err) {
@@ -124,16 +110,15 @@ export default function History({
         }
       }
 
-      // Also remove from local storage if it exists there
       const localData = JSON.parse(
         localStorage.getItem("ratbod_history") || "[]",
       ) as Metrics[];
-      const filteredLocal = localData.filter(
-        (entry: Metrics) => entry.id !== id,
-      );
-      localStorage.setItem("ratbod_history", JSON.stringify(filteredLocal));
 
-      // Refresh history
+      const filteredLocal = localData.filter(
+        (entry: Metrics) => entry.id !== id && entry._id !== id,
+      );
+
+      localStorage.setItem("ratbod_history", JSON.stringify(filteredLocal));
       fetchHistory();
     } catch (error) {
       console.error("Failed to delete entry:", error);
@@ -147,93 +132,89 @@ export default function History({
     return `${(kg * 2.20462).toFixed(1)} lb`;
   };
 
-  const formatDate = (dateString: string | undefined): string => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const SectionHeader = () => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div>
+          <h2
+            className={cn(
+              "text-2xl font-bold tracking-tight flex items-center gap-2",
+              darkMode ? "text-white" : "text-gray-900",
+            )}
+          >
+            <HistoryIcon className="text-primary" /> History
+          </h2>
+        </div>
+      </div>
+
+      {history.length > 0 && (
+        <div
+          className={cn(
+            "inline-flex items-center justify-center px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider w-fit shrink-0",
+            darkMode
+              ? "bg-white/5 text-gray-300 border border-white/10"
+              : "bg-gray-100 text-gray-700 border border-gray-200",
+          )}
+        >
+          {history.length} {history.length === 1 ? "Entry" : "Entries"}
+        </div>
+      )}
+    </div>
+  );
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-5">
+        <SectionHeader />
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
 
   if (history.length === 0) {
     return (
-      <div
-        className={cn(
-          "p-8 rounded-3xl border border-dashed text-center space-y-3",
-          darkMode
-            ? "border-white/10 bg-white/[3%]"
-            : "border-gray-300 bg-gray-50",
-        )}
-      >
-        <Calendar
+      <div className="space-y-5">
+        <SectionHeader />
+
+        <div
           className={cn(
-            "mx-auto",
-            darkMode ? "text-white/40" : "text-gray-400",
-          )}
-          size={32}
-        />
-        <p
-          className={cn(
-            "text-sm font-medium",
-            darkMode ? "text-gray-300" : "text-gray-600",
+            "p-8 rounded-3xl border border-dashed text-center space-y-3",
+            darkMode
+              ? "border-white/10 bg-white/[3%]"
+              : "border-gray-300 bg-gray-50",
           )}
         >
-          No history entries found. Save your first measurement to see it here!
-        </p>
+          <Calendar
+            className={cn(
+              "mx-auto",
+              darkMode ? "text-white/40" : "text-gray-400",
+            )}
+            size={32}
+          />
+          <p
+            className={cn(
+              "text-sm font-medium",
+              darkMode ? "text-gray-300" : "text-gray-600",
+            )}
+          >
+            No history entries found. Save your first measurement to see it
+            here!
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h3
-            className={cn(
-              "text-lg font-bold tracking-tight",
-              darkMode ? "text-white" : "text-gray-900",
-            )}
-          >
-            Measurement History
-          </h3>
-          <span
-            className={cn(
-              "text-xs font-bold uppercase tracking-widest opacity-40",
-            )}
-          >
-            {history.length} Entries
-          </span>
-        </div>
+    <div className="space-y-5">
+      <SectionHeader />
 
-        {history.length > 0 && (
-          <button
-            onClick={clearLocalHistory}
-            className={cn(
-              "text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full transition-all cursor-pointer",
-              darkMode
-                ? "bg-white/5 text-gray-400 hover:bg-red-500/10 hover:text-red-400"
-                : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600",
-            )}
-          >
-            Clear Local
-          </button>
-        )}
-      </div>
-
+      {/* Desktop Table */}
       <div
         className={cn(
-          "rounded-3xl border overflow-hidden shadow-sm",
+          "hidden md:block rounded-3xl border overflow-hidden shadow-sm",
           darkMode ? "bg-[#0F0F0F] border-white/5" : "bg-white border-black/5",
         )}
       >
@@ -255,7 +236,13 @@ export default function History({
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+
+            <tbody
+              className={cn(
+                "divide-y",
+                darkMode ? "divide-white/5" : "divide-gray-100",
+              )}
+            >
               {history.map((entry, index) => {
                 const prevEntry = history[index + 1];
                 const weightDiff = prevEntry
@@ -266,7 +253,11 @@ export default function History({
 
                 return (
                   <tr
-                    key={entry.id || entry._id ? `${entry.id || entry._id}` : `local-${index}`}
+                    key={
+                      entry.id || entry._id
+                        ? `${entry.id || entry._id}`
+                        : `local-${index}`
+                    }
                     className={cn(
                       "group transition-colors",
                       darkMode ? "hover:bg-white/5" : "hover:bg-gray-50",
@@ -294,19 +285,18 @@ export default function History({
                         </span>
                       </div>
                     </td>
+
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2">
-                          <Scale size={14} className="text-primary/60" />
-                          <span
-                            className={cn(
-                              "text-sm font-bold",
-                              darkMode ? "text-white" : "text-gray-900",
-                            )}
-                          >
-                            {formatWeight(entry.weight)}
-                          </span>
-                        </div>
+                        <Scale size={14} className="text-primary/60" />
+                        <span
+                          className={cn(
+                            "text-sm font-bold",
+                            darkMode ? "text-white" : "text-gray-900",
+                          )}
+                        >
+                          {formatWeight(entry.weight)}
+                        </span>
 
                         {prevEntry && (
                           <div
@@ -332,6 +322,7 @@ export default function History({
                         )}
                       </div>
                     </td>
+
                     <td className="px-6 py-4 text-center">
                       <span
                         className={cn(
@@ -344,6 +335,7 @@ export default function History({
                         {entry.bmi.toFixed(1)}
                       </span>
                     </td>
+
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Activity size={12} className="text-primary/60" />
@@ -362,12 +354,17 @@ export default function History({
                         </span>
                       </div>
                     </td>
+
                     <td className="px-6 py-4 text-right">
                       {(entry.id || entry._id) && (
                         <button
-                          onClick={() => confirmDelete((entry.id || entry._id) as string | number)}
+                          onClick={() =>
+                            confirmDelete(
+                              (entry.id || entry._id) as string | number,
+                            )
+                          }
                           className={cn(
-                            "p-2 rounded-lg transition-all opacity-100 cursor-pointer",
+                            "p-2 rounded-lg transition-all cursor-pointer",
                             darkMode
                               ? "hover:bg-red-500/10 text-red-400 hover:text-red-300"
                               : "hover:bg-red-50 text-red-500 hover:text-red-600",
@@ -383,6 +380,174 @@ export default function History({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {history.map((entry, index) => {
+          const prevEntry = history[index + 1];
+          const weightDiff = prevEntry ? entry.weight - prevEntry.weight : 0;
+          const displayDiff =
+            unit === "metric" ? weightDiff : weightDiff * 2.20462;
+
+          return (
+            <div
+              key={
+                entry.id || entry._id
+                  ? `mobile-${entry.id || entry._id}`
+                  : `mobile-local-${index}`
+              }
+              className={cn(
+                "p-4 rounded-2xl border transition-colors",
+                darkMode
+                  ? "bg-[#0F0F0F] border-white/5"
+                  : "bg-white border-black/5",
+              )}
+            >
+              {/* Top */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "p-1.5 rounded-lg",
+                      darkMode ? "bg-white/5" : "bg-gray-100",
+                    )}
+                  >
+                    <Calendar size={13} className="text-primary/60" />
+                  </div>
+                  <div>
+                    <p
+                      className={cn(
+                        "text-sm font-bold leading-tight",
+                        darkMode ? "text-white" : "text-gray-900",
+                      )}
+                    >
+                      {entry.createdAt
+                        ? new Date(entry.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )
+                        : "N/A"}
+                    </p>
+                    <p className="text-[10px] opacity-40">
+                      {entry.createdAt
+                        ? new Date(entry.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+
+                {(entry.id || entry._id) && (
+                  <button
+                    onClick={() =>
+                      confirmDelete((entry.id || entry._id) as string | number)
+                    }
+                    className={cn(
+                      "p-2 rounded-lg transition-all cursor-pointer",
+                      darkMode
+                        ? "hover:bg-red-500/10 text-red-400 hover:text-red-300"
+                        : "hover:bg-red-50 text-red-500 hover:text-red-600",
+                    )}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div
+                  className={cn(
+                    "p-3 rounded-xl",
+                    darkMode ? "bg-white/5" : "bg-gray-50",
+                  )}
+                >
+                  <p className="text-[9px] uppercase tracking-wider opacity-40 mb-1 flex items-center gap-1">
+                    <Scale size={9} />
+                    Weight
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm font-extrabold leading-tight",
+                      darkMode ? "text-white" : "text-gray-900",
+                    )}
+                  >
+                    {formatWeight(entry.weight)}
+                  </p>
+                  {prevEntry && (
+                    <div
+                      className={cn(
+                        "mt-1 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-black",
+                        weightDiff < 0
+                          ? "bg-emerald-500/10 text-emerald-500"
+                          : weightDiff > 0
+                            ? "bg-red-500/10 text-red-500"
+                            : "bg-gray-500/10 text-gray-400",
+                      )}
+                    >
+                      {weightDiff < 0 ? (
+                        <TrendingDown size={8} />
+                      ) : weightDiff > 0 ? (
+                        <TrendingUp size={8} />
+                      ) : (
+                        <Minus size={8} />
+                      )}
+                      {weightDiff !== 0 && Math.abs(displayDiff).toFixed(1)}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  className={cn(
+                    "p-3 rounded-xl",
+                    darkMode ? "bg-white/5" : "bg-gray-50",
+                  )}
+                >
+                  <p className="text-[9px] uppercase tracking-wider opacity-40 mb-1">
+                    BMI
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm font-extrabold leading-tight",
+                      darkMode ? "text-white" : "text-gray-900",
+                    )}
+                  >
+                    {entry.bmi.toFixed(1)}
+                  </p>
+                  <p className="text-[9px] opacity-40 mt-1">kg/m²</p>
+                </div>
+
+                <div
+                  className={cn(
+                    "p-3 rounded-xl",
+                    darkMode ? "bg-white/5" : "bg-gray-50",
+                  )}
+                >
+                  <p className="text-[9px] uppercase tracking-wider opacity-40 mb-1 flex items-center gap-1">
+                    <Activity size={9} />
+                    Body Fat
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm font-extrabold leading-tight",
+                      darkMode ? "text-white" : "text-gray-900",
+                    )}
+                  >
+                    {(entry.bodyFat ?? entry.bodyFatPercentage ?? 0).toFixed(1)}
+                    %
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
