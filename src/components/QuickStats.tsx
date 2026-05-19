@@ -1,6 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
-import { TrendingDown, TrendingUp, Target, Calendar } from "lucide-react";
+import { TrendingDown, Target, Calendar } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { Metrics, Goal } from "@/types";
@@ -16,46 +16,33 @@ interface QuickStatsProps {
   initialWeight?: number;
 }
 
-export function QuickStats({
-  darkMode,
-  latestMetrics,
-  goals,
-  initialWeight,
-}: QuickStatsProps) {
+export function QuickStats({ darkMode, latestMetrics, goals, initialWeight }: QuickStatsProps) {
   const calculateGoalProgress = () => {
     if (!latestMetrics || !goals || goals.length === 0) return 0;
-
     const weightGoal = goals.find((g) => g.targetWeight);
     if (!weightGoal || !weightGoal.targetWeight) return 0;
-
     const currentWeight = latestMetrics.weight;
     const targetWeight = weightGoal.targetWeight;
     const startWeight = initialWeight || currentWeight;
-
     if (startWeight === targetWeight) return currentWeight === targetWeight ? 100 : 0;
     if (currentWeight === targetWeight) return 100;
-
-    const progress =
-      ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100;
+    const progress = ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100;
     return Math.max(0, Math.min(100, progress));
   };
 
   const daysSinceLastEntry = useMemo(() => {
     if (!latestMetrics) return null;
-
     const now = new Date();
     const entryDate = new Date(latestMetrics.createdAt || "");
     const diffTime = now.getTime() - entryDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
   }, [latestMetrics]);
 
   const goalProgress = calculateGoalProgress();
   const targetWeight = goals?.find((g) => g.targetWeight)?.targetWeight;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
       {/* Latest Entry */}
       <div
         className={cn(
@@ -66,74 +53,18 @@ export function QuickStats({
         )}
       >
         <div className="flex items-start justify-between mb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Latest Entry
-          </span>
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Latest Entry</span>
           <Calendar size={16} className="text-primary/60" />
         </div>
         <div className="space-y-2">
-          <p
-            className={cn(
-              "text-2xl font-light tracking-tight",
-              darkMode ? "text-white" : "text-gray-900",
-            )}
-          >
+          <p className={cn("text-2xl font-light tracking-tight", darkMode ? "text-white" : "text-gray-900")}>
             {latestMetrics
-              ? `${latestMetrics.weight.toFixed(1)} ${
-                  latestMetrics.height > 200 ? "lb" : "kg"
-                }`
+              ? `${latestMetrics.weight.toFixed(1)} ${latestMetrics.height > 200 ? "lb" : "kg"}`
               : "No data"}
           </p>
           {daysSinceLastEntry !== null && (
             <p className="text-xs text-gray-500">
-              {daysSinceLastEntry === 0
-                ? "Today"
-                : daysSinceLastEntry === 1
-                  ? "Yesterday"
-                  : `${daysSinceLastEntry} days ago`}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Goal Progress */}
-      <div
-        className={cn(
-          "p-4 rounded-2xl border shadow-md transition-all duration-200",
-          darkMode
-            ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20"
-            : "bg-gradient-to-br from-primary-light to-primary-light/50 border-primary/20",
-        )}
-      >
-        <div className="flex items-start justify-between mb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Goal Progress
-          </span>
-          <Target size={16} className="text-primary" />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <p
-              className={cn(
-                "text-2xl font-light tracking-tight",
-                darkMode ? "text-white" : "text-gray-900",
-              )}
-            >
-              {goalProgress.toFixed(0)}%
-            </p>
-            {goalProgress > 0 && (
-              <TrendingDown size={16} className="text-primary" />
-            )}
-          </div>
-          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-500"
-              style={{ width: `${goalProgress}%` }}
-            />
-          </div>
-          {targetWeight && (
-            <p className="text-xs text-gray-500">
-              Target: {targetWeight.toFixed(1)} kg
+              {daysSinceLastEntry === 0 ? "Today" : daysSinceLastEntry === 1 ? "Yesterday" : `${daysSinceLastEntry} days ago`}
             </p>
           )}
         </div>
@@ -149,10 +80,8 @@ export function QuickStats({
         )}
       >
         <div className="flex items-start justify-between mb-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            Health Status
-          </span>
-          {latestMetrics && latestMetrics.bmi && (
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Health Status</span>
+          {latestMetrics?.bmi && (
             <div
               className={cn(
                 "w-3 h-3 rounded-full",
@@ -168,14 +97,9 @@ export function QuickStats({
           )}
         </div>
         <div className="space-y-1">
-          {latestMetrics && latestMetrics.bmi ? (
+          {latestMetrics?.bmi ? (
             <>
-              <p
-                className={cn(
-                  "text-sm font-bold",
-                  darkMode ? "text-white" : "text-gray-900",
-                )}
-              >
+              <p className={cn("text-sm font-bold", darkMode ? "text-white" : "text-gray-900")}>
                 {latestMetrics.bmi < 18.5
                   ? "Underweight"
                   : latestMetrics.bmi < 25
@@ -184,12 +108,39 @@ export function QuickStats({
                       ? "Overweight"
                       : "Obese"}
               </p>
-              <p className="text-xs text-gray-500">
-                BMI: {latestMetrics.bmi.toFixed(1)}
-              </p>
+              <p className="text-xs text-gray-500">BMI: {latestMetrics.bmi.toFixed(1)}</p>
             </>
           ) : (
             <p className="text-sm text-gray-500">No data available</p>
+          )}
+        </div>
+      </div>
+
+      {/* Goal Progress — full width on mobile */}
+      <div
+        className={cn(
+          "p-4 rounded-2xl border shadow-md transition-all duration-200 col-span-2 md:col-span-1",
+          darkMode
+            ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20"
+            : "bg-gradient-to-br from-primary-light to-primary-light/50 border-primary/20",
+        )}
+      >
+        <div className="flex items-start justify-between mb-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Goal Progress</span>
+          <Target size={16} className="text-primary" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <p className={cn("text-2xl font-light tracking-tight", darkMode ? "text-white" : "text-gray-900")}>
+              {goalProgress.toFixed(0)}%
+            </p>
+            {goalProgress > 0 && <TrendingDown size={16} className="text-primary" />}
+          </div>
+          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${goalProgress}%` }} />
+          </div>
+          {targetWeight && (
+            <p className="text-xs text-gray-500">Target: {targetWeight.toFixed(1)} kg</p>
           )}
         </div>
       </div>

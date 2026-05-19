@@ -1,12 +1,7 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -18,12 +13,12 @@ import {
   Target,
   Flame,
   TrendingUp,
- 
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
+import { QuickMeasurementForm } from "@/components/QuickMeasurementForm";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -54,7 +49,7 @@ const features = [
 ];
 
 export default function Landing() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -63,7 +58,6 @@ export default function Landing() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
 
-  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -80,9 +74,7 @@ export default function Landing() {
   const darkMode = resolvedTheme === "dark";
 
   if (!mounted) {
-    return (
-      <div className="w-full min-h-screen bg-white dark:bg-[#0F0F0F]" />
-    );
+    return <div className="w-full min-h-screen bg-white dark:bg-[#0F0F0F]" />;
   }
 
   const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -156,13 +148,11 @@ export default function Landing() {
       className={cn(
         "w-full min-h-screen transition-colors duration-300 overflow-x-clip",
         darkMode
-          ? "bg-gradient-to-br from-[#0F0F0F] via-[#0a0a0f] to-[#1a1a1a] text-white"
-          : "bg-gradient-to-br from-white via-gray-50 to-gray-100 text-gray-900",
+          ? "bg-[#0A0A0A] text-white"
+          : "bg-linear-to-br from-white via-gray-50 to-gray-100 text-gray-900",
       )}
     >
-      <Navbar
-        onOpenAuth={() => setShowAuthModal(true)}
-      />
+      <Navbar onOpenAuth={() => setShowAuthModal(true)} />
 
       <main className="w-full">
         {/* Hero Section */}
@@ -209,7 +199,7 @@ export default function Landing() {
                     <ArrowRight size={18} />
                   </button>
                   <button
-                    onClick={() => setShowAuthModal(true)}
+                    onClick={() => router.push("/dashboard")}
                     className={cn(
                       "px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold transition-all border w-full xs:flex-1",
                       darkMode
@@ -217,7 +207,7 @@ export default function Landing() {
                         : "border-gray-300 hover:border-gray-400 hover:bg-gray-50",
                     )}
                   >
-                    Learn More
+                    Go to Dashboard
                   </button>
                 </div>
 
@@ -230,113 +220,130 @@ export default function Landing() {
                 </div>
               </div>
 
-              {
-                <div className="hidden md:flex flex-col gap-6">
-                  {/* Main Dashboard Card */}
+              <div className="hidden md:flex flex-col gap-6">
+                {/* Main Dashboard Card */}
+                <div
+                  className={cn(
+                    "p-8 rounded-2xl border backdrop-blur-sm transition-all",
+                    darkMode
+                      ? "bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/15 hover:border-primary/30"
+                      : "bg-gradient-to-br from-white/40 via-white/30 to-white/20 border-white/30 hover:border-primary/30",
+                  )}
+                >
+                  <p className="text-xs uppercase tracking-widest opacity-60 mb-6">
+                    Dashboard Preview
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Weight</span>
+                      <span className="font-bold text-lg">72 kg</span>
+                    </div>
+                    <div
+                      className={cn(
+                        "h-2 rounded-full overflow-hidden",
+                        darkMode ? "bg-white/10" : "bg-white/40",
+                      )}
+                    >
+                      <div className="h-full w-3/4 bg-gradient-to-r from-primary to-blue-500 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">BMI</span>
+                      <span className="font-bold text-lg">24.5</span>
+                    </div>
+                    <div
+                      className={cn(
+                        "h-2 rounded-full overflow-hidden",
+                        darkMode ? "bg-white/10" : "bg-white/40",
+                      )}
+                    >
+                      <div className="h-full w-2/3 bg-gradient-to-r from-primary to-green-500 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Daily Intake</span>
+                      <span className="font-bold text-lg">2,100 kcal</span>
+                    </div>
+                    <div
+                      className={cn(
+                        "h-2 rounded-full overflow-hidden",
+                        darkMode ? "bg-white/10" : "bg-white/40",
+                      )}
+                    >
+                      <div className="h-full w-4/5 bg-gradient-to-r from-primary to-orange-500 rounded-full" />
+                    </div>
+                  </div>
+
                   <div
                     className={cn(
-                      "p-8 rounded-2xl border backdrop-blur-sm transition-all",
-                      darkMode
-                        ? "bg-gradient-to-br from-white/10 via-white/5 to-transparent border-white/15 hover:border-primary/30"
-                        : "bg-gradient-to-br from-white/40 via-white/30 to-white/20 border-white/30 hover:border-primary/30",
+                      "mt-6 pt-6 border-t flex items-center justify-between",
+                      darkMode ? "border-white/10" : "border-white/20",
                     )}
                   >
-                    <p className="text-xs uppercase tracking-widest opacity-60 mb-6">
-                      Dashboard Preview
-                    </p>
-
-                    {/* Weight Progress */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Weight</span>
-                        <span className="font-bold text-lg">72 kg</span>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-2 rounded-full overflow-hidden",
-                          darkMode ? "bg-white/10" : "bg-white/40",
-                        )}
-                      >
-                        <div className="h-full w-3/4 bg-gradient-to-r from-primary to-blue-500 rounded-full" />
-                      </div>
-                    </div>
-
-                    {/* BMI */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">BMI</span>
-                        <span className="font-bold text-lg">24.5</span>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-2 rounded-full overflow-hidden",
-                          darkMode ? "bg-white/10" : "bg-white/40",
-                        )}
-                      >
-                        <div className="h-full w-2/3 bg-gradient-to-r from-primary to-green-500 rounded-full" />
-                      </div>
-                    </div>
-
-                    {/* Calories */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">
-                          Daily Intake
-                        </span>
-                        <span className="font-bold text-lg">2,100 kcal</span>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-2 rounded-full overflow-hidden",
-                          darkMode ? "bg-white/10" : "bg-white/40",
-                        )}
-                      >
-                        <div className="h-full w-4/5 bg-gradient-to-r from-primary to-orange-500 rounded-full" />
-                      </div>
-                    </div>
-
-                    {/* Progress Badge */}
-                    <div
-                      className={cn(
-                        "mt-6 pt-6 border-t flex items-center justify-between",
-                        darkMode ? "border-white/10" : "border-white/20",
-                      )}
-                    >
-                      <span className="text-sm opacity-70">This Month</span>
-                      <span className="font-bold text-primary text-lg">
-                        ↑ 5.2%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div
-                      className={cn(
-                        "p-4 rounded-lg border transition-all text-center",
-                        darkMode
-                          ? "bg-white/5 border-white/10 hover:bg-white/10"
-                          : "bg-white/30 border-white/20 hover:bg-white/40",
-                      )}
-                    >
-                      <p className="text-xs opacity-60 mb-1">Streaks</p>
-                      <p className="font-bold text-lg">12 days</p>
-                    </div>
-                    <div
-                      className={cn(
-                        "p-4 rounded-lg border transition-all text-center",
-                        darkMode
-                          ? "bg-white/5 border-white/10 hover:bg-white/10"
-                          : "bg-white/30 border-white/20 hover:bg-white/40",
-                      )}
-                    >
-                      <p className="text-xs opacity-60 mb-1">Goal</p>
-                      <p className="font-bold text-lg">68 kg</p>
-                    </div>
+                    <span className="text-sm opacity-70">This Month</span>
+                    <span className="font-bold text-primary text-lg">
+                      ↑ 5.2%
+                    </span>
                   </div>
                 </div>
-              }
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    className={cn(
+                      "p-4 rounded-lg border transition-all text-center",
+                      darkMode
+                        ? "bg-white/5 border-white/10 hover:bg-white/10"
+                        : "bg-white/30 border-white/20 hover:bg-white/40",
+                    )}
+                  >
+                    <p className="text-xs opacity-60 mb-1">Streaks</p>
+                    <p className="font-bold text-lg">12 days</p>
+                  </div>
+                  <div
+                    className={cn(
+                      "p-4 rounded-lg border transition-all text-center",
+                      darkMode
+                        ? "bg-white/5 border-white/10 hover:bg-white/10"
+                        : "bg-white/30 border-white/20 hover:bg-white/40",
+                    )}
+                  >
+                    <p className="text-xs opacity-60 mb-1">Goal</p>
+                    <p className="font-bold text-lg">68 kg</p>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* Quick Measurement Form — no login required */}
+        <section
+          className={cn(
+            "w-full py-12 sm:py-16 px-4 sm:px-6 md:px-8 border-t",
+            darkMode ? "border-white/10" : "border-gray-200",
+          )}
+        >
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold mb-3">
+                Try It Now
+              </h2>
+              <p
+                className={cn(
+                  "text-base sm:text-lg",
+                  darkMode ? "text-gray-400" : "text-gray-600",
+                )}
+              >
+                Calculate your health metrics instantly — no account needed.
+              </p>
+            </div>
+            <QuickMeasurementForm darkMode={darkMode} />
           </div>
         </section>
 
@@ -531,8 +538,18 @@ export default function Landing() {
                             : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
                         )}
                       >
-                        <option value="male" className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white">Male</option>
-                        <option value="female" className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white">Female</option>
+                        <option
+                          value="male"
+                          className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
+                        >
+                          Male
+                        </option>
+                        <option
+                          value="female"
+                          className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
+                        >
+                          Female
+                        </option>
                       </select>
                     </div>
                   </div>
