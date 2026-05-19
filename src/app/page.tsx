@@ -19,6 +19,13 @@ import { twMerge } from "tailwind-merge";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import { QuickMeasurementForm } from "@/components/QuickMeasurementForm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -60,13 +67,14 @@ export default function Landing() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [registerGender, setRegisterGender] = useState<"male" | "female">(
+    "male",
+  );
 
-  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Redirect logged-in users to dashboard
   useEffect(() => {
     if (status === "authenticated") {
       router.push("/dashboard");
@@ -117,7 +125,7 @@ export default function Landing() {
         }
       } else {
         const birthdate = formData.get("birthdate") as string;
-        const gender = formData.get("gender") as string;
+        const gender = registerGender;
 
         const res = await fetch("/api/register", {
           method: "POST",
@@ -157,6 +165,13 @@ export default function Landing() {
       setIsLoading(false);
     }
   };
+
+  const modalSelectTriggerClass = cn(
+    "w-full mt-2 !h-auto px-4 py-3 rounded-lg border transition-colors",
+    darkMode
+      ? "bg-white/5 border-white/10 focus:border-primary text-white"
+      : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
+  );
 
   return (
     <div
@@ -236,7 +251,6 @@ export default function Landing() {
               </div>
 
               <div className="hidden md:flex flex-col gap-6">
-                {/* Main Dashboard Card */}
                 <div
                   className={cn(
                     "p-8 rounded-2xl border backdrop-blur-sm transition-all",
@@ -249,7 +263,6 @@ export default function Landing() {
                     Dashboard Preview
                   </p>
 
-                  {/* Weight Progress */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Weight</span>
@@ -265,7 +278,6 @@ export default function Landing() {
                     </div>
                   </div>
 
-                  {/* BMI */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">BMI</span>
@@ -281,7 +293,6 @@ export default function Landing() {
                     </div>
                   </div>
 
-                  {/* Calories */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Daily Intake</span>
@@ -297,7 +308,6 @@ export default function Landing() {
                     </div>
                   </div>
 
-                  {/* Progress Badge */}
                   <div
                     className={cn(
                       "mt-6 pt-6 border-t flex items-center justify-between",
@@ -311,7 +321,6 @@ export default function Landing() {
                   </div>
                 </div>
 
-                {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3">
                   <div
                     className={cn(
@@ -341,7 +350,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Quick Measurement Form — no login required */}
+        {/* Quick Measurement Form */}
         <section
           className={cn(
             "w-full py-12 sm:py-16 px-4 sm:px-6 md:px-8 border-t",
@@ -447,7 +456,7 @@ export default function Landing() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 w-screen overflow-x-hidden">
           <div
             className={cn(
-              "w-full max-w-md p-6 sm:p-8 rounded-2xl border transition-all",
+              "w-full max-w-md p-6 sm:p-8 rounded-2xl border transition-all relative",
               darkMode
                 ? "bg-[#1a1a1a] border-white/10"
                 : "bg-white border-gray-200",
@@ -527,7 +536,7 @@ export default function Landing() {
 
                 {authMode === "register" && (
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="min-w-0">
                       <label className="text-xs uppercase tracking-wider opacity-70">
                         Birthdate
                       </label>
@@ -543,33 +552,24 @@ export default function Landing() {
                         )}
                       />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label className="text-xs uppercase tracking-wider opacity-70">
                         Gender
                       </label>
-                      <select
-                        name="gender"
-                        required
-                        className={cn(
-                          "w-full mt-2 px-4 py-3 rounded-lg border transition-colors",
-                          darkMode
-                            ? "bg-white/5 border-white/10 focus:border-primary text-white"
-                            : "bg-gray-50 border-gray-200 focus:border-primary text-gray-900",
-                        )}
+                      <Select
+                        value={registerGender}
+                        onValueChange={(val) =>
+                          setRegisterGender(val as "male" | "female")
+                        }
                       >
-                        <option
-                          value="male"
-                          className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
-                        >
-                          Male
-                        </option>
-                        <option
-                          value="female"
-                          className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white"
-                        >
-                          Female
-                        </option>
-                      </select>
+                        <SelectTrigger className={modalSelectTriggerClass}>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="max-w-[var(--radix-select-trigger-width)]">
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 )}

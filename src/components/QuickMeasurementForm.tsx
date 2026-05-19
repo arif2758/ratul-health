@@ -162,12 +162,16 @@ export function QuickMeasurementForm({
     setHip("");
   };
 
-  // Shared trigger style to match input style
+  // shadcn select trigger style — matches input look, removes extra padding
   const selectTriggerClass = cn(
-    "w-full mt-2 px-4 py-2 rounded-lg border transition-colors",
+    "w-full mt-2 !h-auto px-4 py-2 rounded-lg border transition-colors data-[size=default]:h-auto",
     darkMode
       ? "bg-white/5 border-white/10 focus:border-primary text-white"
       : "bg-white border-gray-300 focus:border-primary text-gray-900",
+  );
+
+  const selectedActivity = activityOptions.find(
+    (o) => o.value === activityLevel,
   );
 
   return (
@@ -356,7 +360,7 @@ export function QuickMeasurementForm({
             </div>
           )}
 
-          {/* Activity Level */}
+          {/* Activity Level — simplified, only label shown in trigger */}
           <div className="min-w-0">
             <label className="text-xs uppercase tracking-wider opacity-60 flex items-center gap-2">
               <Activity size={14} /> Activity Level *
@@ -366,19 +370,30 @@ export function QuickMeasurementForm({
               onValueChange={(val) => setActivityLevel(val as ActivityLevel)}
             >
               <SelectTrigger className={selectTriggerClass}>
-                <SelectValue placeholder="Select activity level" />
+                <SelectValue placeholder="Select activity level">
+                  {selectedActivity?.label}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="max-w-[var(--radix-select-trigger-width)]">
                 {activityOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{opt.label}</span>
-                      <span className="text-[10px] opacity-60">{opt.desc}</span>
+                    <div className="flex flex-col items-start py-0.5">
+                      <span className="font-medium leading-tight">
+                        {opt.label}
+                      </span>
+                      <span className="text-[10px] opacity-60 leading-tight">
+                        {opt.desc}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {selectedActivity?.desc && (
+              <p className="text-[11px] opacity-50 mt-1.5 px-1">
+                {selectedActivity.desc}
+              </p>
+            )}
           </div>
         </div>
 
