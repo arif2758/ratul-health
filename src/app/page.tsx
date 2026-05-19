@@ -453,30 +453,61 @@ export default function Landing() {
 
       {/* Auth Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 w-screen overflow-x-hidden">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 w-screen overflow-x-hidden animate-in fade-in duration-200"
+          onClick={() => setShowAuthModal(false)}
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={cn(
-              "w-full max-w-md p-6 sm:p-8 rounded-2xl border transition-all relative",
+              "w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200",
               darkMode
                 ? "bg-[#1a1a1a] border-white/10"
                 : "bg-white border-gray-200",
             )}
           >
-            <button
-              onClick={() => setShowAuthModal(false)}
+            {/* Modal Header */}
+            <div
               className={cn(
-                "absolute top-4 right-4 p-2 rounded-lg transition-colors",
-                darkMode ? "hover:bg-white/10" : "hover:bg-gray-100",
+                "flex items-center justify-between px-6 py-4 border-b",
+                darkMode ? "border-white/10" : "border-gray-200",
               )}
             >
-              <span className="text-xl">✕</span>
-            </button>
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">
+                  {authMode === "login" ? "Welcome Back" : "Create Account"}
+                </h2>
+                <p
+                  className={cn(
+                    "text-xs mt-0.5",
+                    darkMode ? "text-gray-400" : "text-gray-500",
+                  )}
+                >
+                  {authMode === "login"
+                    ? "Sign in to continue your journey"
+                    : "Start tracking your health today"}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className={cn(
+                  "shrink-0 w-9 h-9 flex items-center justify-center rounded-full transition-colors",
+                  darkMode
+                    ? "hover:bg-white/10 text-gray-300"
+                    : "hover:bg-gray-100 text-gray-600",
+                )}
+                aria-label="Close"
+              >
+                <span className="text-lg leading-none">✕</span>
+              </button>
+            </div>
 
-            <div className="space-y-6">
+            {/* Modal Body */}
+            <div className="p-6 space-y-5">
               <div
                 className={cn(
-                  "flex gap-2 p-1 rounded-lg",
-                  darkMode ? "bg-white/10" : "bg-gray-100",
+                  "flex gap-1 p-1 rounded-lg",
+                  darkMode ? "bg-white/5" : "bg-gray-100",
                 )}
               >
                 <button
@@ -485,9 +516,9 @@ export default function Landing() {
                     setAuthError("");
                   }}
                   className={cn(
-                    "flex-1 px-4 py-2 rounded-lg font-medium transition-all",
+                    "flex-1 px-4 py-2 rounded-md font-medium text-sm transition-all",
                     authMode === "login"
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-white shadow-sm"
                       : darkMode
                         ? "text-gray-300 hover:text-white"
                         : "text-gray-600 hover:text-gray-900",
@@ -501,9 +532,9 @@ export default function Landing() {
                     setAuthError("");
                   }}
                   className={cn(
-                    "flex-1 px-4 py-2 rounded-lg font-medium transition-all",
+                    "flex-1 px-4 py-2 rounded-md font-medium text-sm transition-all",
                     authMode === "register"
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-white shadow-sm"
                       : darkMode
                         ? "text-gray-300 hover:text-white"
                         : "text-gray-600 hover:text-gray-900",
@@ -633,7 +664,7 @@ export default function Landing() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all disabled:opacity-50 font-semibold"
+                  className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all disabled:opacity-50 font-semibold shadow-sm"
                 >
                   {isLoading
                     ? "Processing..."
