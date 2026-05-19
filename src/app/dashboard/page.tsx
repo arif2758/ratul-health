@@ -246,18 +246,6 @@ export default function DashboardPage() {
               onGoToProfile={() => router.push("/profile")}
             />
 
-            {/* Goals Section */}
-            {user && (
-              <div className="mt-12">
-                <Goals
-                  darkMode={darkMode}
-                  unit={unit}
-                  currentWeight={metricsHistory?.[0]?.weight}
-                  currentBodyFat={metricsHistory?.[0]?.bodyFat}
-                />
-              </div>
-            )}
-
             {/* History Section */}
             {user && (
               <div className="mt-12">
@@ -266,6 +254,18 @@ export default function DashboardPage() {
                   unit={unit}
                   refreshTrigger={historyRefreshTrigger}
                   isLoggedIn={true}
+                />
+              </div>
+            )}
+
+            {/* Goals Section */}
+            {user && (
+              <div className="mt-12">
+                <Goals
+                  darkMode={darkMode}
+                  unit={unit}
+                  currentWeight={metricsHistory?.[0]?.weight}
+                  currentBodyFat={metricsHistory?.[0]?.bodyFat}
                 />
               </div>
             )}
