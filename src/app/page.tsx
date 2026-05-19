@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -23,6 +23,8 @@ import { QuickMeasurementForm } from "@/components/QuickMeasurementForm";
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const features = [
   {
@@ -50,6 +52,7 @@ const features = [
 
 export default function Landing() {
   const { resolvedTheme } = useTheme();
+  const { status } = useSession();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -58,9 +61,17 @@ export default function Landing() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState("");
 
+  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Redirect logged-in users to dashboard
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    }
+  }, [status, router]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -99,8 +110,9 @@ export default function Landing() {
           toast.error(result.error || "Login failed");
           setAuthError(result.error);
         } else {
-          toast.success("Login successful!");
+          toast.success("Login successful!", { duration: 1000 });
           setShowAuthModal(false);
+          await sleep(1000);
           router.push("/dashboard");
         }
       } else {
@@ -114,7 +126,8 @@ export default function Landing() {
         });
 
         if (res.ok) {
-          toast.success("Account created! Logging in...");
+          toast.success("Account created! Logging in...", { duration: 1000 });
+
           const loginResult = await signIn("credentials", {
             email,
             password,
@@ -125,7 +138,9 @@ export default function Landing() {
             toast.error("Login failed");
             setAuthError(loginResult.error);
           } else {
+            toast.success("Login successful!", { duration: 1000 });
             setShowAuthModal(false);
+            await sleep(1000);
             router.push("/dashboard");
           }
         } else {
@@ -199,7 +214,7 @@ export default function Landing() {
                     <ArrowRight size={18} />
                   </button>
                   <button
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => setShowAuthModal(true)}
                     className={cn(
                       "px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold transition-all border w-full xs:flex-1",
                       darkMode
@@ -207,7 +222,7 @@ export default function Landing() {
                         : "border-gray-300 hover:border-gray-400 hover:bg-gray-50",
                     )}
                   >
-                    Go to Dashboard
+                    Learn More
                   </button>
                 </div>
 
@@ -234,6 +249,7 @@ export default function Landing() {
                     Dashboard Preview
                   </p>
 
+                  {/* Weight Progress */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Weight</span>
@@ -249,6 +265,7 @@ export default function Landing() {
                     </div>
                   </div>
 
+                  {/* BMI */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">BMI</span>
@@ -264,6 +281,7 @@ export default function Landing() {
                     </div>
                   </div>
 
+                  {/* Calories */}
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Daily Intake</span>
@@ -279,6 +297,7 @@ export default function Landing() {
                     </div>
                   </div>
 
+                  {/* Progress Badge */}
                   <div
                     className={cn(
                       "mt-6 pt-6 border-t flex items-center justify-between",

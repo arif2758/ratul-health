@@ -165,7 +165,7 @@ export function QuickMeasurementForm({
       className={cn(
         "p-6 rounded-3xl border transition-all shadow-2xl",
         darkMode
-          ? "bg-white/[3%] backdrop-blur-xl border-white/10 shadow-black/40"
+          ? "bg-white/3 backdrop-blur-xl border-white/10 shadow-black/40"
           : "bg-white/60 backdrop-blur-xl border-black/5 shadow-gray-200/80",
       )}
     >
@@ -388,7 +388,7 @@ export function QuickMeasurementForm({
         </div>
 
         {/* RIGHT: Health Goal + Ideal Body Weight */}
-        <div className="flex-1 min-w-0 space-y-4">
+        <div className="flex-1 min-w-0 space-y-4 hidden md:block">
           {metrics ? (
             <>
               {/* Your Health Goal */}
